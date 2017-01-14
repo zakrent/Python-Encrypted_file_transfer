@@ -2,5 +2,5 @@
 ```
 Commands:
   LST - list all files
-  GET <filename> - downloads file
+  GET <filename> - download file
 ```
