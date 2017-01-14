@@ -70,7 +70,7 @@ def handler(connSocket):
 			elif command[:3] == 'GET':
 				sendfile(connSocket, command[4:])
 			else:
-				pass
+				send(connSocket, "UNK")
 	connSocket.close()
 
 def main():

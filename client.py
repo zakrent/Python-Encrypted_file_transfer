@@ -21,6 +21,8 @@ def handler(s):
 			data = s.recv(2048).decode('UTF-8')
 			if data != "END":
 				print(data)
+	elif data == "UNK":
+		print("Unknown command")
 
 s = socket.socket()
 s.connect(('10.0.0.3',5000))
