@@ -32,6 +32,9 @@ def listfiles(connSocket):
 
 def sendfile(connSocket, filename):
 	filedir = 'files/'+filename
+	if not os.path.exists(filedir):
+		send(connSocket, "UNF")
+		return
 	filesize = os.path.getsize(filedir)
 	with open(filedir, 'rb') as f:
 		send(connSocket, 'ASF')
@@ -62,8 +65,6 @@ def handler(connSocket):
 	if authorize(connSocket):
 		while True:
 			command = recive(connSocket)
-			if not command:
-				break
 			print(command)
 			if command[:3] == 'LST':
 				listfiles(connSocket)

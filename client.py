@@ -23,6 +23,8 @@ def handler(s):
 				print(data)
 	elif data == "UNK":
 		print("Unknown command")
+	elif data == "UNF":
+		print("Unknown file")
 
 s = socket.socket()
 s.connect(('10.0.0.3',5000))
