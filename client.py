@@ -27,7 +27,7 @@ def handler(s):
 		print("Unknown file")
 
 s = socket.socket()
-s.connect(('10.0.0.3',5000))
+s.connect(('127.0.0.1',5000))
 print("Connected")
 data = s.recv(2048).decode('UTF-8')
 if data == "AUT":

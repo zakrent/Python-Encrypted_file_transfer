@@ -2,7 +2,7 @@
 
 import os
 import socket
-from threading import Thread
+import _thread
 
 def send(connSocket, message, noEncoding = False):
 	if noEncoding:
@@ -75,7 +75,7 @@ def handler(connSocket):
 	connSocket.close()
 
 def main():
-	host = '10.0.0.3'
+	host = '127.0.0.1'
 	port = 5000
 
 	listenSocket = socket.socket()
@@ -85,8 +85,6 @@ def main():
 		listenSocket.listen(5)
 		connSocket, connAddres = listenSocket.accept()
 		print("Connection"+str(connAddres))
-		handler(connSocket)
-		#Thread(target=handler, args=(connSocket)).start()
-
+		_thread.start_new_thread(handler, (connSocket,))
 if __name__=='__main__':
 	main()
