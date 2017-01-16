@@ -81,16 +81,20 @@ def handler(connSocket):
 		return
 
 def main():
-	host = '127.0.0.1'
-	port = 5000
+	try:
+		host = '127.0.0.1'
+		port = 5000
 
-	listenSocket = socket.socket()
-	listenSocket.bind((host,port))
+		listenSocket = socket.socket()
+		listenSocket.bind((host,port))
 
-	while True:
-		listenSocket.listen(5)
-		connSocket, connAddres = listenSocket.accept()
-		print("Connection"+str(connAddres))
-		_thread.start_new_thread(handler, (connSocket,))
+		while True:
+			listenSocket.listen(5)
+			connSocket, connAddres = listenSocket.accept()
+			print("Connection"+str(connAddres))
+			_thread.start_new_thread(handler, (connSocket,))
+	except:
+		listenSocket.close()
+		
 if __name__=='__main__':
 	main()
