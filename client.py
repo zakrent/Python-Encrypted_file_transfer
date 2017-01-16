@@ -25,19 +25,25 @@ def handler(s):
 		print("Unknown command")
 	elif data == "UNF":
 		print("Unknown file")
+def main():
+	try:
+		s = socket.socket()
+		s.connect(('127.0.0.1',5000))
+		print("Connected")
+		data = s.recv(2048).decode('UTF-8')
+		if data == "AUT":
+			passw = input("Password ->")
+			s.send(passw.encode('UTF-8'))
+			data = s.recv(2048).decode('UTF-8')
+			if data == "ACK":
+				while True:
+					command = input("->")
+					s.send(command.encode('UTF-8'))
+					handler(s)
+		s.close()
+	except:
+		s.close()
+		return
 
-s = socket.socket()
-s.connect(('127.0.0.1',5000))
-print("Connected")
-data = s.recv(2048).decode('UTF-8')
-if data == "AUT":
-	passw = input("Password ->")
-	s.send(passw.encode('UTF-8'))
-	data = s.recv(2048).decode('UTF-8')
-	if data == "ACK":
-		while True:
-			command = input("->")
-			s.send(command.encode('UTF-8'))
-			handler(s)
-
-s.close()
+if __name__=='__main__':
+	main()
