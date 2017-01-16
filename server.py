@@ -62,17 +62,23 @@ def authorize(connSocket):  #Placeholder
 		return False
 
 def handler(connSocket):
-	if authorize(connSocket):
-		while True:
-			command = recive(connSocket)
-			print(command)
-			if command[:3] == 'LST':
-				listfiles(connSocket)
-			elif command[:3] == 'GET':
-				sendfile(connSocket, command[4:])
-			else:
-				send(connSocket, "UNK")
-	connSocket.close()
+	connSocket.settimeout(60)
+	try:
+		if authorize(connSocket):
+			while True:
+				command = recive(connSocket)
+				print(command)
+				if command[:3] == 'LST':
+					listfiles(connSocket)
+				elif command[:3] == 'GET':
+					sendfile(connSocket, command[4:])
+				else:
+					send(connSocket, "UNK")
+		connSocket.close()
+	except:
+		connSocket.close()
+		print("Connection closed")
+		return
 
 def main():
 	host = '127.0.0.1'
