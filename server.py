@@ -29,11 +29,14 @@ def listfiles(connSocket):
 		while not isReady(connSocket) and timeout > 0:
 			timeout -= 1
 		send(connSocket, filename)
+	timeout = 2000
+	while not isReady(connSocket) and timeout > 0:
+		timeout -= 1
 	send(connSocket, 'END')
 
 def sendfile(connSocket, filename):
 	filedir = 'files/'+filename
-	if not os.path.exists(filedir):
+	if not os.path.exists(filedir) or str(filename)=="":
 		send(connSocket, "UNF")
 		return
 	filesize = os.path.getsize(filedir)

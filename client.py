@@ -18,7 +18,7 @@ def handler(s):
 				recived += len(data)
 				f.write(data)
 	elif data == "ALS":
-		while data != "END":
+		while data != "END" and data:
 			s.send("RDY".encode('UTF-8'))
 			data = s.recv(2048).decode('UTF-8')
 			if data != "END":
@@ -52,6 +52,7 @@ def main():
 			if data == "ACK":
 				while True:
 					command = input("->")
+					logging.debug(command)
 					s.send(command.encode('UTF-8'))
 					handler(s)
 	except:
