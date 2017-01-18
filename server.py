@@ -2,6 +2,7 @@
 
 import os
 import socket
+import logging
 import _thread
 
 def send(connSocket, message, noEncoding = False):
@@ -64,10 +65,11 @@ def authorize(connSocket):  #Placeholder
 def handler(connSocket):
 	connSocket.settimeout(60)
 	try:
+		peerName = connSocket.getpeername()[0]
 		if authorize(connSocket):
 			while True:
 				command = recive(connSocket)
-				print(command)
+				logging.info(peerName+" "+command)
 				if command[:3] == 'LST':
 					listfiles(connSocket)
 				elif command[:3] == 'GET':
@@ -76,14 +78,28 @@ def handler(connSocket):
 					send(connSocket, "UNK")
 		connSocket.close()
 	except:
+		logging.error(sys.exc_info()[0])
+	finally:
+		logging.info(peerName + " closed connection")
 		connSocket.close()
-		print("Connection closed")
 		return
 
 def main():
 	try:
+		logging.basicConfig(
+			filename='server.log',
+			level=logging.INFO,
+			format= '[%(asctime)s] %(levelname)s - %(message)s',
+			datefmt='%H:%M:%S'
+	 	)
+		terminal = logging.StreamHandler()
+		terminal.setLevel(logging.INFO)
+		formatter = logging.Formatter('%(asctime)s : %(levelname)s : %(message)s')
+		terminal.setFormatter(formatter)
+		logging.getLogger("").addHandler(terminal)
+
 		host = '127.0.0.1'
-		port = 5000
+		port = 5001
 
 		listenSocket = socket.socket()
 		listenSocket.bind((host,port))
@@ -91,10 +107,14 @@ def main():
 		while True:
 			listenSocket.listen(5)
 			connSocket, connAddres = listenSocket.accept()
-			print("Connection"+str(connAddres))
+			logging.info("Connection "+connSocket.getpeername()[0])
 			_thread.start_new_thread(handler, (connSocket,))
 	except:
+		logging.error(sys.exc_info()[0])
+	finally:
+		logging.warning("Program closed")
 		listenSocket.close()
-		
+		return
+
 if __name__=='__main__':
 	main()

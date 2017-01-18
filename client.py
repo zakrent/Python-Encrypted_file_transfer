@@ -1,6 +1,8 @@
 #!/usr/bin/python3
 
 import socket
+import sys
+import logging
 
 def handler(s):
 	data = s.recv(2048).decode('UTF-8')
@@ -22,14 +24,26 @@ def handler(s):
 			if data != "END":
 				print(data)
 	elif data == "UNK":
-		print("Unknown command")
+		logging.warning("Unknown command")
 	elif data == "UNF":
-		print("Unknown file")
+		logging.warning("Unknown file")
 def main():
 	try:
+		logging.basicConfig(
+			filename='client.log',
+			level=logging.INFO,
+			format= '[%(asctime)s] %(levelname)s - %(message)s',
+			datefmt='%H:%M:%S'
+	 	)
+		terminal = logging.StreamHandler()
+		terminal.setLevel(logging.INFO)
+		formatter = logging.Formatter('%(levelname)s : %(message)s')
+		terminal.setFormatter(formatter)
+		logging.getLogger("").addHandler(terminal)
+
 		s = socket.socket()
-		s.connect(('127.0.0.1',5000))
-		print("Connected")
+		s.connect(('127.0.0.1',5001))
+		logging.info("Connected")
 		data = s.recv(2048).decode('UTF-8')
 		if data == "AUT":
 			passw = input("Password ->")
@@ -40,10 +54,9 @@ def main():
 					command = input("->")
 					s.send(command.encode('UTF-8'))
 					handler(s)
-		s.close()
 	except:
+		logging.error(sys.exc_info()[0])
 		s.close()
-		return
 
 if __name__=='__main__':
 	main()
