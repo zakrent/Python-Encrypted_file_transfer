@@ -4,14 +4,18 @@ import os
 import socket
 import logging
 import _thread
+import rsa
 
 def send(connSocket, message, noEncoding = False):
+	logging.debug(message)
 	if noEncoding:
 		connSocket.send(message)
 	else:
 		connSocket.send(message.encode('utf-8'))
 
-def recive(connSocket):
+def recive(connSocket, noDecode = False):
+	if noDecode:
+		return connSocket.recv(2048)
 	return connSocket.recv(2048).decode('utf-8')
 
 def isReady(connSocket):
@@ -59,11 +63,16 @@ def authorize(connSocket):  #Placeholder
 	data = recive(connSocket)
 	password = "LOL123"
 	if data == password:
-		send(connSocket, "ACK")
-		return True
+		send(connSocket, "KEY")
+		PubKeyString = recive(connSocket, True)
+		logging.debug(PubKeyString)
+		PubKey = rsa.PublicKey.load_pkcs1(PubKeyString)
+		AESKey = rsa.encrypt("AESKey".encode('UTF-8'), PubKey)
+		send(connSocket, AESKey, True)
+		return PubKey
 	else:
 		send(connSocket, "ERR")
-		return False
+		return None
 
 def handler(connSocket):
 	connSocket.settimeout(60)
@@ -102,7 +111,7 @@ def main():
 		logging.getLogger("").addHandler(terminal)
 
 		host = '127.0.0.1'
-		port = 5001
+		port = 5000
 
 		listenSocket = socket.socket()
 		listenSocket.bind((host,port))
