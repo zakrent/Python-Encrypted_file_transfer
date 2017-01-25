@@ -10,7 +10,6 @@ def send(connSocket, message, noEncoding = False, Fernet = None):
 	elif Fernet:
 		message = Fernet.encrypt(message.encode('UTF-8'))
 		noEncoding = True
-
 	if noEncoding:
 		connSocket.send(message)
 	else:
@@ -65,7 +64,6 @@ def sendfile(connSocket, filename, Fernet):
 		while data:
 			if len(data) % 2048 != 0:
 				data += f.read(len(data) % 2048)
-			logging.info(len(Fernet.encrypt(data)))
 			send(connSocket, data, True, Fernet)
 			data = f.read(2048)
 
