@@ -1,39 +1,51 @@
 #!/usr/bin/python3
 
-import socket
-import sys
-import logging
-import rsa
+import socket, sys, logging, rsa
+from cryptography.fernet import Fernet
 
-def send(connSocket, message, noEncoding = False):
+def send(connSocket, message, noEncoding = False, Fernet = None):
 	logging.debug(message)
+	if Fernet and noEncoding:
+		message = Fernet.encrypt(message)
+	elif Fernet:
+		message = Fernet.encrypt(message.encode('UTF-8'))
+		noEncoding = True
+
 	if noEncoding:
 		connSocket.send(message)
 	else:
 		connSocket.send(message.encode('utf-8'))
 
-def recive(connSocket, noDecode = False, noEncryption = 0):
+def recive(connSocket, noDecode = False, Fernet = None, numberOfBytes = 2048):
+	message = connSocket.recv(numberOfBytes)
+	logging.debug(message)
+	if Fernet:
+		message = Fernet.decrypt(message)
 	if noDecode:
-		return connSocket.recv(2048)
-	return connSocket.recv(2048).decode('utf-8')
+		return message
 
-def handler(s):
-	data = recive(s)
+	return message.decode("UTF-8")
+
+def handler(s, Fernet):
+	data = recive(s, False, Fernet)
 	if data == "ASF":
-		send(s,"RDY")
-		data = recive(s)
+		send(s,"RDY", False, Fernet)
+		data = recive(s, False, Fernet)
 		with open(data, 'wb') as f:
-			send(s,"RDY")
-			filesize = int(recive(s))
+			send(s,"RDY", False, Fernet)
+			filesize = int(recive(s, False, Fernet))
 			recived = 0
 			while filesize - recived > 0:
 				data = recive(s, True)
+				if len(data) % 2828 != 0:
+					data += recive(s, True, None, 2828 - len(data))
+				data = Fernet.decrypt(data)
 				recived += len(data)
 				f.write(data)
 	elif data == "ALS":
 		while data != "END" and data:
-			send(s, "RDY")
-			data = recive(s)
+			send(s, "RDY", False, Fernet)
+			data = recive(s, False, Fernet)
 			if data != "END":
 				print(data)
 	elif data == "UNK":
@@ -56,7 +68,7 @@ def authorize(s, pubKey, privKey):
 		logging.debug(AESKey)
 		return AESKey
 	else:
-		return 0
+		return None
 
 def main():
 	try:
@@ -80,12 +92,13 @@ def main():
 		data = recive(s)
 		if data == "AUT":
 			AESKey = authorize(s, pubKey, privKey)
-			if AESKey !=0:
+			if AESKey != b"":
+				f = Fernet(AESKey)
 				while True:
 					command = input("->")
-					logging.debug(command)
-					send(s, command)
-					handler(s)
+					if command:
+						send(s, command, False, f)
+						handler(s, f)
 	except:
 		logging.error(sys.exc_info()[0])
 		s.close()
