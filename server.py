@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-import os, socket, logging, _thread, rsa
+import os, socket, logging, _thread, rsa, argparse, sys
 from cryptography.fernet import Fernet
 
 def send(connSocket, message, noEncoding = False, Fernet = None):
@@ -108,22 +108,29 @@ def handler(connSocket):
 		return
 
 def main():
+	parser = argparse.ArgumentParser()
+	parser.add_argument("ip", help="Set IP of the foreign server", type=str)
+	parser.add_argument("port", help="Set port of the foreign server", type=int)
+	parser.add_argument("-log", help="Set log level", choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'], default='INFO')
+
+	args = parser.parse_args()
+
+	logging.basicConfig(
+		filename='server.log',
+		level=getattr(logging, args.log),
+		format= '[%(asctime)s] %(levelname)s - %(message)s',
+		datefmt='%H:%M:%S'
+ 	)
+	terminal = logging.StreamHandler()
+	terminal.setLevel(getattr(logging, args.log))
+	formatter = logging.Formatter('%(asctime)s : %(levelname)s : %(message)s')
+	terminal.setFormatter(formatter)
+	logging.getLogger("").addHandler(terminal)
+
+	host = args.ip
+	port = args.port
+
 	try:
-		logging.basicConfig(
-			filename='server.log',
-			level=logging.INFO,
-			format= '[%(asctime)s] %(levelname)s - %(message)s',
-			datefmt='%H:%M:%S'
-	 	)
-		terminal = logging.StreamHandler()
-		terminal.setLevel(logging.INFO)
-		formatter = logging.Formatter('%(asctime)s : %(levelname)s : %(message)s')
-		terminal.setFormatter(formatter)
-		logging.getLogger("").addHandler(terminal)
-
-		host = '127.0.0.1'
-		port = 5000
-
 		listenSocket = socket.socket()
 		listenSocket.bind((host,port))
 

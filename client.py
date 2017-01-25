@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-import socket, sys, logging, rsa, time
+import socket, sys, logging, rsa, time, argparse
 from cryptography.fernet import Fernet
 
 def send(connSocket, message, noEncoding = False, Fernet = None):
@@ -89,24 +89,40 @@ def authorize(s, pubKey, privKey):
 	else:
 		return None
 
+def ipToList(ipString):
+	s = "."
+	ip = s.split(ipString)
+	returnIP = []
+	for i in ip:
+		returnIP.append(int(i))
+	return returnIP
+
 def main():
+
+	parser = argparse.ArgumentParser()
+	parser.add_argument("ip", help="Set IP of the foreign server", type=str)
+	parser.add_argument("port", help="Set port of the foreign server", type=int)
+	parser.add_argument("-log", help="Set log level", choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'], default='INFO')
+
+	args = parser.parse_args()
+	
+	logging.basicConfig(
+		filename='client.log',
+		level=getattr(logging, args.log),
+		format= '[%(asctime)s] %(levelname)s - %(message)s',
+		datefmt='%H:%M:%S'
+ 	)
+	terminal = logging.StreamHandler()
+	terminal.setLevel(getattr(logging, args.log))
+	formatter = logging.Formatter('%(levelname)s : %(message)s')
+	terminal.setFormatter(formatter)
+	logging.getLogger("").addHandler(terminal)
+
+	(pubKey, privKey) = rsa.newkeys(1024)
+
 	try:
-		logging.basicConfig(
-			filename='client.log',
-			level=logging.INFO,
-			format= '[%(asctime)s] %(levelname)s - %(message)s',
-			datefmt='%H:%M:%S'
-	 	)
-		terminal = logging.StreamHandler()
-		terminal.setLevel(logging.INFO)
-		formatter = logging.Formatter('%(levelname)s : %(message)s')
-		terminal.setFormatter(formatter)
-		logging.getLogger("").addHandler(terminal)
-
-		(pubKey, privKey) = rsa.newkeys(1024)
-
 		s = socket.socket()
-		s.connect(('127.0.0.1',5000))
+		s.connect((str(args.ip),args.port))
 		logging.info("Connected")
 		data = recive(s)
 		if data == "AUT":
